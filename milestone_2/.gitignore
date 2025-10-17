@@ -1,0 +1,13 @@
+# Minimal ignores for this repo
+__pycache__/
+*.py[cod]
+
+# Local virtual envs
+.venv/
+venv/
+
+# Editor/OS
+.vscode/
+
+# Logs
+*.log

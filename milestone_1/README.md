@@ -40,35 +40,50 @@ Follow these steps to set up your environment and run the audio pre-processing s
 * **Python 3.x**
 * **FFmpeg**: The `pydub` library requires FFmpeg. You must install it on your system separately. You can download it from the [official FFmpeg site](https://ffmpeg.org/download.html).
 
-### 2. Setup Your Environment
+### 2. Quick Start (Windows PowerShell)
 
-It's highly recommended to use a Python virtual environment to manage project dependencies.
+```powershell
+# 1) Clone the repository
+git clone https://github.com/Speech-Summarizer-Application-IF-SB/Sonal-Verma.git
+cd Sonal-Verma
 
-```bash
-# 1. Create a new virtual environment
-python -m venv venv
+# 2) Create & activate a virtual environment
+python -m venv .venv
+. .venv\Scripts\Activate.ps1
 
-# 2. Activate the environment
-# On Windows:
-venv\Scripts\activate
+# 3) Install dependencies
+pip install -r requirements.txt
 
-# On macOS/Linux:
-source venv/bin/activate
-3. Install Required Libraries
-```
+# 4) Navigate to milestone_1
+cd milestone_1
 
-Install all necessary Python packages using pip. Run this command in your activated terminal:
-
-```Bash
-pip install numpy soundfile sounddevice noisereduce pydub
-```
-
-4. Run the Audio Cleaner
-You can now run the main script. It will prompt you to choose between cleaning an existing file or recording new audio.
-
-```Bash
+# 5) Run the audio cleaner script
 python audio_cleaner.py
 ```
+
+**For macOS/Linux users:**
+```bash
+# 1) Clone the repository
+git clone https://github.com/Speech-Summarizer-Application-IF-SB/Sonal-Verma.git
+cd Sonal-Verma
+
+# 2) Create & activate a virtual environment
+python3 -m venv .venv
+source .venv/bin/activate
+
+# 3) Install dependencies
+pip install -r requirements.txt
+
+# 4) Navigate to milestone_1
+cd milestone_1
+
+# 5) Run the audio cleaner script
+python audio_cleaner.py
+```
+
+### 3. Using the Audio Cleaner
+
+The script will prompt you to choose between cleaning an existing file or recording new audio.
 
 #### To clean an existing audio file:
 

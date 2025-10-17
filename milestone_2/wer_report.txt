@@ -1,0 +1,20 @@
+=== Speech-to-Text Evaluation ===
+
+--- Word-Level Metrics ---
+Word Error Rate (WER):        0.055
+Match Error Rate (MER):       0.054
+Word Info Lost (WIL):         0.099
+Word Info Preserved (WIP):    0.901
+Substitutions:                118
+Insertions:                   13
+Deletions:                    6
+Hits (correct words):         2384
+Total Reference Words:        2508
+Accuracy (Word-Level):        0.945
+
+--- Character-Level Metrics ---
+Character Error Rate (CER):   0.042
+Substitutions (chars):        98
+Insertions (chars):           420
+Deletions (chars):            50
+Total Reference Chars:        13557

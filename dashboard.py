@@ -1,7 +1,9 @@
+import os
+import io
+import time
+import tempfile
 import streamlit as st
 from pydub import AudioSegment
-import time
-import io
 from main import (
     step_clean_audio,
     step_transcription,
@@ -10,14 +12,10 @@ from main import (
     step_summarization,
 )
 
-import os
-import tempfile
-
 
 # === Function to process the full pipeline and return results ===
-def process_pipeline(input_audio_bytes):
+def process_pipeline(input_audio_bytes, status_placeholder):
     try:
-        # Create temp directory for intermediate files
         with tempfile.TemporaryDirectory() as tmpdir:
             input_path = os.path.join(tmpdir, "input.wav")
             cleaned_audio = os.path.join(tmpdir, "cleaned.wav")
@@ -27,51 +25,55 @@ def process_pipeline(input_audio_bytes):
             diarized_txt = os.path.join(tmpdir, "diarized_transcript.txt")
             summary_txt = os.path.join(tmpdir, "summary.txt")
 
-            # Save uploaded/recorded audio temporarily
             with open(input_path, "wb") as f:
                 f.write(input_audio_bytes.read())
 
-            # Step 1: Clean audio
+            # Step 1
             st.session_state.status = "🔊 Cleaning audio..."
-            if not step_clean_audio(input_path, cleaned_audio):
-                return "Audio cleaning failed!", "", ""
+            status_placeholder.info(f"**Status:** {st.session_state.status}")
+            with st.spinner("Cleaning audio... ⏳"):
+                if not step_clean_audio(input_path, cleaned_audio):
+                    return "Audio cleaning failed!", "", ""
 
-            # Step 2: Transcription
+            # Step 2
             st.session_state.status = "📝 Transcribing..."
-            if not step_transcription(cleaned_audio, transcript_txt, transcript_json):
-                return "Transcription failed!", "", ""
-            else:
+            status_placeholder.info(f"**Status:** {st.session_state.status}")
+            with st.spinner("Transcribing... 📝"):
+                if not step_transcription(cleaned_audio, transcript_txt, transcript_json):
+                    return "Transcription failed!", "", ""
+                with open(transcript_txt, "r", encoding="utf-8") as f:
+                    transcription = f.read()
                 st.session_state.transcription = transcription
-                
 
-            # Step 3: Diarization
+            # Step 3
             st.session_state.status = "👥 Performing diarization..."
-            if not step_diarization(cleaned_audio, diarization_json):
-                return "Diarization failed!", "", ""
+            status_placeholder.info(f"**Status:** {st.session_state.status}")
+            with st.spinner("Performing diarization... 👥"):
+                if not step_diarization(cleaned_audio, diarization_json):
+                    return "Diarization failed!", "", ""
 
-            # Step 4: Merge
+            # Step 4
             st.session_state.status = "🔗 Merging results..."
-            if not step_merge_transcripts(transcript_json, diarization_json, diarized_txt):
-                return "Merging failed!", "", ""
-            else:
+            status_placeholder.info(f"**Status:** {st.session_state.status}")
+            with st.spinner("Merging results... 🔗"):
+                if not step_merge_transcripts(transcript_json, diarization_json, diarized_txt):
+                    return "Merging failed!", "", ""
+                with open(diarized_txt, "r", encoding="utf-8") as f:
+                    diarized = f.read()
                 st.session_state.diarized = diarized
 
-            # Step 5: Summarization
+            # Step 5
             st.session_state.status = "🧠 Summarizing..."
-            if not step_summarization(diarized_txt, summary_txt):
-                return "Summarization failed!", "", ""
-            else:
+            status_placeholder.info(f"**Status:** {st.session_state.status}")
+            with st.spinner("Summarizing... 🧠"):
+                if not step_summarization(diarized_txt, summary_txt):
+                    return "Summarization failed!", "", ""
+                with open(summary_txt, "r", encoding="utf-8") as f:
+                    summary = f.read()
                 st.session_state.summary = summary
 
-            # Read results
-            with open(transcript_txt, "r", encoding="utf-8") as f:
-                transcription = f.read()
-
-            with open(diarized_txt, "r", encoding="utf-8") as f:
-                diarized = f.read()
-
-            with open(summary_txt, "r", encoding="utf-8") as f:
-                summary = f.read()
+            st.session_state.status = "✅ Completed"
+            status_placeholder.success(f"**Status:** {st.session_state.status}")
 
             return transcription, diarized, summary
 
@@ -128,7 +130,7 @@ left, right = st.columns([1, 2], gap="large")
 # ------------------- LEFT PANEL -------------------
 with left:
     st.header("🎧 Input Options")
-    input_mode = st.radio("Select Input Mode:", ["🎙️ Live Recording", "📁 Upload Audio File"])
+    input_mode = st.radio("**Select Input Mode** (must at least 2 minutes long):", ["🎙️ Live Recording", "📁 Upload Audio File"])
 
     if input_mode == "🎙️ Live Recording":
         st.info("💾 Please save this file to use it later for transcription.")
@@ -164,28 +166,44 @@ with left:
     if input_audio:
         st.toast(f"Audio {input_mode[2:]} successfully!", icon="✅")
 
+        try:
+            audio_segment = AudioSegment.from_file(input_audio, format="wav")
+            duration_seconds = len(audio_segment) / 1000  # convert ms → seconds
+            duration_minutes = duration_seconds / 60
+
+            if duration_minutes < 2:
+                st.error("❌ The audio file must be at least **2 minutes long**. Please upload a longer recording.")
+                st.stop()
+            else:
+                st.info(f"✅ Audio duration: {duration_minutes:.2f} minutes")
+        except Exception as e:
+            st.error(f"⚠️ Could not read audio file. Error: {e}")
+            st.stop()
+
+            
         if st.button("🚀 Process Audio"):
             st.session_state.status = "Initializing..."
             st.toast("Starting full pipeline 🚀", icon="🧠")
 
-            # Run pipeline
-            
-            with st.spinner("Please wait ⏳"):
-                transcription, diarized, summary = process_pipeline(input_audio)
+            status_placeholder = st.empty()
 
-            # Update UI
+            status_placeholder.write(f"**Status:** {st.session_state.status}")
+
+            # Run pipeline (no st.spinner)
+            transcription, diarized, summary = process_pipeline(input_audio, status_placeholder)
+
             if transcription.startswith("❌") or transcription.endswith("failed!"):
                 st.error(transcription)
             else:
-                st.session_state.status = "✅ Completed"
                 st.success("🎉 Processing completed successfully!")
+                st.balloons()
 
             
 
 # ------------------- RIGHT PANEL (OUTPUT TABS) -------------------
 with right:
     st.header("🧾 Output Results")
-    st.success("you can copy text by selecting and copying by pressing 📝  Ctrl+C ")
+    st.write("you can copy text by selecting and copying by pressing 📝  Ctrl+C ")
 
     tab1, tab2, tab3 = st.tabs(["📝 Transcription", "👥 Diarized Transcription", "🧠 Summarized Notes"])
     with tab1:

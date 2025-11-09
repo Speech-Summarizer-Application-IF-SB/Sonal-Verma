@@ -1,7 +1,10 @@
 from faster_whisper import WhisperModel
 import yt_dlp
+import soundfile as sf
+from tqdm import tqdm
 
-def download_youtube_wav(url, output_path="video_audio.wav"):
+
+def download_youtube_wav(url, output_path):
     ydl_opts = {
         "format": "bestaudio/best",
         "outtmpl": output_path,
@@ -16,22 +19,43 @@ def download_youtube_wav(url, output_path="video_audio.wav"):
         ydl.download([url])
         print(f"✅ Audio saved as {output_path}")
 
-video_url = "https://www.youtube.com/watch?v=IYtDS27znnM"
-download_youtube_wav(video_url, "video_audio")
+def modelCall(audio_path):
+    model_size = "small.en"
+    model = WhisperModel(model_size, device="cpu", compute_type="float32")
 
-model_size = "small.en"
+    segments, info = model.transcribe(audio_path, beam_size=5)
+    print("Detected language '%s' with probability %f" % (info.language, info.language_probability))
 
-model = WhisperModel(model_size, device="cpu", compute_type="float32")
 
-segments, info = model.transcribe("video_audio.wav", beam_size=5)
+    with sf.SoundFile(audio_path) as f:
+        duration = len(f) / f.samplerate
 
-print("Detected language '%s' with probability %f" % (info.language, info.language_probability))
+    formatted_segments = []
+    full_text = ""
+    
+    for i, seg in enumerate(tqdm(segments, desc="Transcribing", unit="segment")):
+        segment_id = f"seg_{i:03d}"
+        segment_data = {
+            "id": segment_id,
+            "start": round(seg.start, 2),
+            "end": round(seg.end, 2),
+            "text": seg.text.strip()
+        }
+        formatted_segments.append(segment_data)
+        full_text += seg.text.strip() + " "
 
-text = ""
+    # Build final structure
+    transcription_data = {
+        "duration": round(duration, 2),
+        "text": full_text.strip(),
+        "segments": formatted_segments,
+    }
+    
+    print(f"\n✅ Transcription completed — {len(formatted_segments)} segments processed.")
+    return transcription_data
 
-for segment in segments:
-    print("[%.2fs -> %.2fs] %s" % (segment.start, segment.end, segment.text))
-    text += segment.text + " "
 
-with open("transcription_sm.txt", "w", encoding="utf-8") as f:
-    f.write(text)
+if __name__ == "__main__":
+    # video_url = "https://www.youtube.com/watch?v=i8KnCFq4Sw0"
+    # download_youtube_wav(video_url, "video_audio.wav")
+    modelCall("video_audio.wav")

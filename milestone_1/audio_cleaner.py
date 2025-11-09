@@ -6,7 +6,6 @@ import soundfile as sf
 import sounddevice as sd
 import noisereduce as nr
 from pydub import AudioSegment, effects
-from pydub.silence import split_on_silence
 
 # --- Configuration ---
 SAMPLE_RATE = 16000  # Standard sample rate for speech recognition

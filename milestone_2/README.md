@@ -1,4 +1,4 @@
-# Whisper Speech-to-Text (faster-whisper)
+# Milestone 2 — Whisper Speech-to-Text (faster-whisper)
 
 Simple speech-to-text utilities powered by faster-whisper:
 - Download and transcribe audio from YouTube videos
@@ -20,13 +20,13 @@ milestone_2/
 └── read.md                     # This documentation file
 ```
 
-## What's here
-
-- `usingfilemodel.py` — Download audio from YouTube and transcribe it using faster-whisper. Saves transcription to `transcription_sm.txt`.
-- `realtimemodel.py` — Stream from your microphone and print live transcriptions in real-time.
-- `report.py` — Compute word/character error metrics between two text files and save a formatted report to `wer_report.txt`.
-- `transcription_sm.txt`, `youtube_transcription.txt` — Example hypothesis/reference transcripts used for evaluation.
-- `report.txt`, `wer_report.txt` — Example evaluation outputs.
+## File overview
+- `realtimemodel.py` — Script intended to run the realtime model (live or streaming inference). Check the top of the file for any configurable options (device, model path, etc.).
+- `usingfilemodel.py` — Script to run inference on an existing audio file or on stored text inputs. Use this when you have an audio file to transcribe.
+- `report.py` — Small utility to calculate / summarize evaluation metrics (for example WER). It reads the model output and reference transcripts and writes `wer_report.txt`.
+- `transcription_sm.txt` — Sample transcription produced by the model (artifact).
+- `youtube_transcription.txt` — Sample transcription extracted from a YouTube source.
+- `wer_report.txt` — Example output produced by `report.py` with Word Error Rate (WER) and other simple stats.
 
 ## Quick start (Windows PowerShell)
 
@@ -45,88 +45,66 @@ pip install -r requirements.txt
 # 4) Navigate to milestone_2
 cd milestone_2
 
-# 5) Run the scripts (examples below)
 ```
 
 Now you're ready to run any of the milestone_2 scripts from this directory.
 
-## 1) Download YouTube audio and transcribe
+Note: If you want to install only packages needed for Milestone 2, inspect imports at the top of `realtimemodel.py`, `usingfilemodel.py` and `report.py` and install them individually.
 
-`usingfilemodel.py` downloads audio from a YouTube video using yt-dlp and transcribes it with faster-whisper.
+## How to run
 
-```powershell
-python usingfilemodel.py
-```
+General guidance — scripts are Python programs that may accept arguments or require you to edit a few constants at the top. If a script includes an argument parser, run it with `-h` or `--help` to see options.
 
-**What it does:**
-- Downloads audio from the YouTube URL specified in the script (default: `https://www.youtube.com/watch?v=IYtDS27znnM`)
-- Converts it to WAV format (`video_audio.wav`)
-- Transcribes using the Whisper model
-- Saves the full transcription to `transcription_sm.txt`
+Examples (adjust paths / options as needed):
 
-**To use your own YouTube video:**
-Edit `usingfilemodel.py` and change the `video_url` variable:
-```python
-video_url = "https://www.youtube.com/watch?v=YOUR_VIDEO_ID"
-```
-
-**Model customization:**
-- `model_size = "small.en"` — choose a different model size (e.g., `tiny`, `base`, `small`, `medium`, `large-v3`, or language-specific variants like `small.en`)
-- `beam_size=5` in the `transcribe()` call — adjust for speed vs accuracy tradeoff
-
-**Note:** This requires `yt-dlp` and `ffmpeg` to be installed. Make sure ffmpeg is in your system PATH.
-
-## 2) Real-time microphone transcription
-
-`realtimemodel.py` captures audio chunks from the microphone and prints recognized text every second.
+Transcribe a local audio file (example):
 
 ```powershell
-python realtimemodel.py
+python milestone_2\usingfilemodel.py --input "path\to\audio.wav" --output "out_transcription.txt"
 ```
 
-Notes:
-- Stop with Ctrl+C.
-- Defaults: `sample_rate = 16000`, `block_duration = 1.0s` (accumulate), `chunk_duration = 0.1s` (capture granularity), mono (`channels = 1`).
-- If you see audio device errors, try a different input device or sample rate in the `sd.InputStream(...)` call.
+Run the realtime model (if supported by your environment):
 
-## 3) Evaluate transcription quality (WER/CER)
-
-`report.py` compares two text files and writes a clean report to `wer_report.txt`.
-
-By default it expects:
-- Hypothesis: `transcription_sm.txt`
-- Reference: `youtube_transcription.txt`
-
-Run it:
 ```powershell
-python report.py
+python milestone_2\realtimemodel.py
 ```
-It prints the metrics and saves a detailed summary to `wer_report.txt`.
 
-## Configuration tips
+Generate an evaluation / WER report from an output and a reference:
 
-- Device & precision (faster-whisper):
-  - In both transcribers, the model is created like:
-    - `WhisperModel(model_size, device="cpu", compute_type="float32")`
-  - If you have a CUDA GPU and compatible wheels, you can try:
-    - `device="cuda"`, `compute_type="float16"` or `"int8_float16"`
-  - GPU support depends on your environment and installed `ctranslate2` build.
-- Model selection:
-  - Smaller models are faster but less accurate. Larger models are slower but more accurate.
-  - English-only variants (e.g., `small.en`) are fast for English.
-- Audio formats:
-  - WAV at 16 kHz mono is a safe default. Other formats may require ffmpeg/av.
+```powershell
+python milestone_2\report.py --pred predicted_transcript.txt --ref reference_transcript.txt --out wer_report.txt
+```
 
-## Troubleshooting
+If these scripts do not expose CLI flags, open the script and set the input/output file paths near the top where constants are defined. The code usually contains clear variable names like `INPUT_PATH` or `OUTPUT_FILE`.
 
-- Microphone stream errors (PortAudio):
-  - If you get a device or samplerate error, try adjusting `samplerate`, `channels`, or explicitly set `device` in `sd.InputStream`.
-  - Ensure your microphone is enabled and accessible by Windows.
-- Performance:
-  - Real-time on CPU works for smaller models; for larger models consider GPU acceleration.
-- Unicode/encoding:
-  - The scripts open files with `encoding="utf-8"`. Keep inputs as UTF-8 for best results.
+## Expected outputs
+- Transcribed text files (plain `.txt`).
+- `wer_report.txt` with WER and simple summary statistics.
 
-## Credits
-- Transcription: [faster-whisper](https://github.com/SYSTRAN/faster-whisper) (CTranslate2 backend for Whisper)
-- Metrics: [jiwer](https://github.com/jitsi/jiwer)
+## Common troubleshooting
+- Make sure the virtual environment is activated and dependencies are installed.
+- If GPU/torch errors appear, ensure PyTorch is installed for your CUDA / CPU environment (see https://pytorch.org/get-started/locally/).
+- If audio decoding fails, confirm `ffmpeg` is installed and available on PATH (or use packages that bundle audio decoders). On Windows, add `ffmpeg\bin` to your PATH.
+- For missing model files or weights, check the code comments — some scripts expect a local model file or will download a model at first run (this requires internet).
+
+## Edge cases to consider
+- Empty or very short audio files — may produce empty or low-quality transcripts.
+- Different audio sampling rates — resampling may be necessary before inference.
+- Long audio files — some models require chunking to avoid out-of-memory errors.
+ 
+### Libraries & tools
+This project uses (or can use) several open-source libraries and tools for audio processing, modeling and evaluation. Examples include:
+
+- PyTorch — deep learning framework for model training and inference.
+- OpenAI Whisper (or similar ASR models) — for speech-to-text transcription.
+- librosa, soundfile — audio I/O and feature utilities.
+- ffmpeg — audio decoding and format conversion.
+- pytube or youtube-dl — for downloading YouTube audio when needed.
+- jiwer — Word Error Rate (WER) calculation and other simple metrics.
+- numpy, scipy, pandas — common scientific and data utilities.
+
+If your environment uses different libraries, update this section to reflect the exact dependencies present in `requirements.txt`.
+
+### Data sources and third-party models
+- Example transcriptions in this folder (`youtube_transcription.txt`, `transcription_sm.txt`) are artifacts or examples and may originate from public audio sources.
+- Any pre-trained models used may be distributed under their own licenses; check the model provider's terms of use before redistribution.

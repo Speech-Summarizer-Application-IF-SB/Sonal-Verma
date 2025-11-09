@@ -2,7 +2,13 @@
 
 A small Streamlit app that demonstrates live audio capture (webrtc), simple processing placeholders (transcription / diarization / summary), and export/copy of results.
 
-This README covers quick setup and how to run the app.
+This app was built as a demonstration of a lightweight browser-based workflow for capturing audio, running speech processing steps, and surfacing human-friendly outputs. It intentionally uses simple UI patterns so developers can quickly replace the placeholder processing steps with production-grade models or services.
+
+Key goals:
+- Keep the UI minimal so experiments with ASR and diarization are easy to iterate.
+- Show how to combine live capture (webrtc) and file upload modes in the same app.
+- Provide simple export and clipboard interactions so outputs can be shared or used in other tools.
+
 
 ## Features
 
@@ -37,25 +43,6 @@ pip install -r requirements.txt
 # 4) Run the Streamlit app
 streamlit run milestone_3/app.py
 ```
-
-## Quick start (macOS / Linux)
-
-```bash
-# 1) Clone the repo
-git clone https://github.com/Speech-Summarizer-Application-IF-SB/Sonal-Verma.git
-cd Sonal-Verma
-
-# 2) Create & activate venv
-python3 -m venv .venv
-source .venv/bin/activate
-
-# 3) Install dependencies
-pip install -r requirements.txt
-
-# 4) Run the app
-streamlit run milestone_3/app.py
-```
-
 ## How to use
 
 1. Open the app in your browser once Streamlit starts.
@@ -64,4 +51,14 @@ streamlit run milestone_3/app.py
    - Click the same button (now labeled "⏹️ Stop Recording") to stop recording and trigger the (demo) processing steps.
 3. Alternatively select `📁 Upload Audio File` and upload a `.wav`, `.mp3`, or `.m4a` file, then click `🚀 Process Audio`.
 4. View results in the Output tabs. Use the `⬇️ Download` button to download text files. Click the `📋 Copy` button to copy text to the clipboard — a browser alert will confirm success.
+
+
+## Credits & acknowledgements
+
+- Author / repository: Speech Summarizer Application — Sonal Verma (Speech-Summarizer-Application-IF-SB / Sonal-Verma)
+- UI & live capture: Streamlit and the `streamlit-webrtc` community package.
+- Processing and model ideas: Hugging Face `transformers`, `pyannote.audio`, and Whisper / community implementations such as `faster-whisper` inspired parts of the project.
+- Thank you to the open-source maintainers whose libraries make quick prototyping like this possible.
+
+If you want, I can now either (a) replace the placeholder processing with a small working ASR pipeline (CPU-friendly) or (b) add a short credits/attribution file under `docs/` — tell me which you prefer.
 

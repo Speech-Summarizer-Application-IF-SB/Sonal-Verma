@@ -25,8 +25,8 @@ def process_pipeline(input_audio_bytes, status_placeholder):
             diarized_txt = os.path.join(tmpdir, "diarized_transcript.txt")
             summary_txt = os.path.join(tmpdir, "summary.txt")
 
-            with open(input_path, "wb") as f:
-                f.write(input_audio_bytes.read())
+            audio = AudioSegment.from_file(input_audio_bytes, format="wav")
+            audio.export(input_path, format="wav")
 
             # Step 1
             st.session_state.status = "🔊 Cleaning audio..."
@@ -171,8 +171,8 @@ with left:
             duration_seconds = len(audio_segment) / 1000  # convert ms → seconds
             duration_minutes = duration_seconds / 60
 
-            if duration_minutes < 2:
-                st.error("❌ The audio file must be at least **2 minutes long**. Please upload a longer recording.")
+            if duration_minutes < 1:
+                st.error("❌ The audio file must be at least **1 minute long**. Please upload a longer recording.")
                 st.stop()
             else:
                 st.info(f"✅ Audio duration: {duration_minutes:.2f} minutes")

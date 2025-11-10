@@ -97,7 +97,15 @@ def step_diarization(cleaned_audio, diarization_json_path):
                 return False
 
             job_id = get_job_id(cleaned_audio, api_key)
+            if not job_id:
+                print("❌ Failed to create diarization job (no job id returned).")
+                return False
+
             diarization_result = get_diarization_result(job_id, api_key)
+
+            if diarization_result is None:
+                print("❌ Diarization returned no result (None). Check logs above for HTTP/JSON errors.")
+                return False
 
             with open(diarization_json_path, "w", encoding="utf-8") as out_file:
                 json.dump(diarization_result, out_file, ensure_ascii=False, indent=4)

@@ -91,13 +91,13 @@ def main():
     
     choice = input("Choose audio source: type 'live' to record or 'file' to select a file: ").strip().lower()
 
-    # Create an 'output' directory if it doesn't exist
-    if not os.path.exists('output'):
-        os.makedirs('output')
+    # Create an 'processed_audio' directory if it doesn't exist
+    if not os.path.exists('processed_audio'):
+        os.makedirs('processed_audio')
 
     if choice == 'live':
-        raw_filename = "output/live_recording_raw.wav"
-        cleaned_filename = "output/live_recording_cleaned.wav"
+        raw_filename = "processed_audio/live_recording_raw.wav"
+        cleaned_filename = "processed_audio/live_recording_cleaned.wav"
         if record_live_audio(raw_filename):
             clean_audio(raw_filename, cleaned_filename)
 
@@ -109,7 +109,7 @@ def main():
             return
             
         base_name = os.path.splitext(os.path.basename(input_path))[0]
-        cleaned_filename = f"output/{base_name}_cleaned.wav"
+        cleaned_filename = f"processed_audio/{base_name}_cleaned.wav"
         
         clean_audio(input_path, cleaned_filename)
 

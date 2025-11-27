@@ -109,6 +109,19 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
+# ------------------- AUTHENTICATION -------------------
+if not st.user.is_logged_in:
+    if( st.button("Log in with Google")):
+        st.login("google")
+    st.stop()
+
+col1, col2 = st.columns([10,1], gap="small")
+
+with col1:
+    st.header(f"Welcome! {st.user.name}")
+with col2:
+    st.logout_button = st.button("Log out", on_click=st.logout)
+
 # ------------------- SESSION STATE -------------------
 if "status" not in st.session_state:
     st.session_state.status = "Idle"

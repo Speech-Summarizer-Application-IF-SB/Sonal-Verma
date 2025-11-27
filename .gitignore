@@ -2,6 +2,8 @@
 __pycache__/
 *.py[cod]
 
+*.toml
+
 
 *.wav
 *.mp4
@@ -16,3 +18,4 @@ venv/
 
 # Logs
 *.log
+.streamlit/
